@@ -1,0 +1,49 @@
+# Stack
+.stack-work/
+*.cabal
+dist/
+dist-newstyle/
+cabal.project.local
+*.hi
+*.o
+*.p_hi
+*.dyn_hi
+*.dyn_o
+*.prof
+
+# GHC
+*.hi
+*.o
+*.p_hi
+*.dyn_hi
+*.dyn_o
+*.prof
+
+# IDE
+.ghc.environment.*
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.exe
+!stack-installer.exe
+*.dll
+*.so
+*.dylib
+
+# Test output
+*.log
+*.tix
+
+# Temporary files
+*.tmp
+*.bak
+*~
+

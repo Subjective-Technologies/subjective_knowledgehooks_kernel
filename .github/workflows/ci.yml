@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        ghc: ['9.2.8', '9.4.7', '9.6.3']
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Haskell
+      uses: haskell/actions/setup@v2
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        enable-stack: true
+        stack-version: 'latest'
+        
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.stack
+          .stack-work
+        key: ${{ runner.os }}-stack-${{ matrix.ghc }}-${{ hashFiles('stack.yaml', 'package.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-stack-${{ matrix.ghc }}-
+          ${{ runner.os }}-stack-
+          
+    - name: Install dependencies
+      run: stack build --only-dependencies --test --bench --no-run-tests --no-run-benchmarks
+      
+    - name: Build project
+      run: stack build --test --bench --no-run-tests --no-run-benchmarks --pedantic
+      
+    - name: Run property tests
+      run: stack test --test-arguments="--verbose --maximum-generated-tests=1000"
+      
+    - name: Run demo
+      run: stack run knowledgehook-demo
+      
+    - name: Check documentation
+      run: stack haddock --no-haddock-deps
+      
+    - name: Verify totality (no partial function warnings)
+      run: stack build --ghc-options="-Wincomplete-patterns -Wincomplete-uni-patterns -Werror"
+
+  hlint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run HLint
+      uses: haskell/actions/hlint-setup@v2
+      
+    - name: Lint source code
+      uses: haskell/actions/hlint-run@v2
+      with:
+        path: src/
+        fail-on: warning
